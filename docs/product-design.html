@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Product requirements, UX decisions, and an interactive test artifact for HTML Artifact Viewer.">
+  <title>HTML Artifact Viewer · Product & design</title>
+  <style>
+    :root { color-scheme: light; --bg:#f8fafc; --paper:#ffffff; --ink:#122035; --muted:#56657a; --line:#dce3eb; --accent:#225de3; --soft:#edf3ff; --good:#246044; --good-bg:#edf7f1; --font:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; --mono:ui-monospace,SFMono-Regular,Consolas,monospace; }
+    @media(prefers-color-scheme:dark) { :root { color-scheme:dark; --bg:#111827; --paper:#182235; --ink:#edf2fc; --muted:#a4b1c5; --line:#334057; --accent:#8aafff; --soft:#1a2a44; --good:#97d4b3; --good-bg:#17372b; } }
+    :root[data-theme="light"] { color-scheme:light; --bg:#f8fafc; --paper:#ffffff; --ink:#122035; --muted:#56657a; --line:#dce3eb; --accent:#225de3; --soft:#edf3ff; --good:#246044; --good-bg:#edf7f1; }
+    :root[data-theme="dark"] { color-scheme:dark; --bg:#111827; --paper:#182235; --ink:#edf2fc; --muted:#a4b1c5; --line:#334057; --accent:#8aafff; --soft:#1a2a44; --good:#97d4b3; --good-bg:#17372b; }
+    * { box-sizing:border-box; }
+    html { scroll-padding-top:24px; }
+    body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.65 var(--font); }
+    a { color:var(--accent); text-underline-offset:4px; overflow-wrap:anywhere; }
+    :focus-visible { outline:3px solid var(--accent); outline-offset:4px; }
+    .skip { position:absolute; top:-100px; left:20px; padding:10px; background:var(--paper); z-index:3; }
+    .skip:focus { top:10px; }
+    .shell { max-width:1240px; margin:auto; padding:32px; }
+    .masthead { display:flex; align-items:center; gap:14px; padding-bottom:24px; border-bottom:1px solid var(--line); }
+    .masthead strong { font-size:15px; }
+    .masthead span { font:12px var(--mono); color:var(--muted); }
+    button,select,input { font:inherit; }
+    button,select { border:1px solid var(--line); border-radius:6px; padding:9px 13px; color:var(--ink); background:var(--paper); }
+    button { cursor:pointer; }
+    .theme { margin-left:auto; font-size:13px; }
+    .layout { display:grid; grid-template-columns:190px minmax(0,1fr); gap:56px; padding-top:36px; }
+    nav { align-self:start; position:sticky; top:24px; display:grid; gap:8px; font-size:13px; }
+    nav a { color:var(--muted); text-decoration:none; padding:4px 0; }
+    nav a:hover { color:var(--accent); text-decoration:underline; }
+    .nav-title,.eyebrow { font:600 11px/1.5 var(--mono); letter-spacing:.09em; text-transform:uppercase; color:var(--muted); }
+    main { min-width:0; display:grid; gap:56px; }
+    section,.intro { display:grid; gap:20px; }
+    h1,h2,h3,p,pre,ul,ol { margin:0; }
+    h1,h2,h3 { text-wrap:balance; line-height:1.15; }
+    h1 { font-size:clamp(32px,4.5vw,52px); letter-spacing:-.045em; max-width:18ch; }
+    h2 { font-size:29px; letter-spacing:-.035em; }
+    h3 { font-size:18px; letter-spacing:-.02em; }
+    p { max-width:65ch; }
+    .lede { font-size:20px; color:var(--muted); max-width:55ch; }
+    .metadata { color:var(--muted); font-size:12px; max-width:none; }
+    .intro-note { padding:16px 20px; background:var(--soft); font-size:14px; }
+    code,pre { font-family:var(--mono); font-size:.84em; }
+    code { overflow-wrap:anywhere; }
+    .window { border:1px solid var(--line); border-radius:10px; overflow:hidden; background:var(--paper); }
+    .window-top { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; padding:12px 18px; border-bottom:1px solid var(--line); }
+    .file-label { font:12px var(--mono); color:var(--muted); }
+    .toggle { display:flex; gap:4px; }
+    .toggle button { font-size:12px; padding:6px 12px; }
+    button[aria-pressed="true"] { border-color:var(--accent); color:var(--accent); background:var(--soft); }
+    .artifact-sample { padding:28px; display:grid; gap:14px; }
+    .artifact-sample h3 { font-size:26px; }
+    .artifact-sample p { color:var(--muted); font-size:14px; }
+    .render-label { color:var(--good); font:12px var(--mono); }
+    .sample-flow { display:flex; flex-wrap:wrap; gap:10px; align-items:center; font:12px var(--mono); }
+    .sample-flow span { padding:7px 10px; background:var(--soft); border-radius:4px; }
+    pre { white-space:pre-wrap; overflow-wrap:anywhere; padding:28px; line-height:1.8; color:var(--muted); }
+    [hidden] { display:none !important; }
+    .caption { font-size:12px; color:var(--muted); }
+    .two-up { display:grid; grid-template-columns:1fr 1fr; gap:28px; }
+    .two-up>div { display:grid; gap:12px; align-content:start; }
+    ul,ol { padding-left:23px; display:grid; gap:8px; }
+    li { max-width:65ch; }
+    .requirement { display:grid; grid-template-columns:68px minmax(0,1fr); gap:16px; border-top:1px solid var(--line); padding-top:20px; }
+    .requirement>a { font:12px var(--mono); text-decoration:none; padding-top:4px; }
+    .requirement>div { display:grid; gap:8px; }
+    .acceptance { color:var(--muted); font-size:14px; }
+    .lab { background:var(--paper); border:1px solid var(--line); border-radius:10px; padding:24px; display:grid; gap:20px; }
+    .lab label { display:grid; gap:7px; font-size:13px; font-weight:600; min-width:0; }
+    .lab input[type="text"],.lab select { width:100%; min-width:0; padding:10px; border:1px solid var(--line); border-radius:5px; background:var(--bg); color:var(--ink); }
+    .lab input[type="text"] { font:13px var(--mono); }
+    .lab .check { display:flex; align-items:center; gap:10px; }
+    .lab input[type="checkbox"] { accent-color:var(--accent); width:17px; height:17px; }
+    .result { padding:18px; background:var(--soft); display:grid; gap:6px; }
+    .result[data-renders="true"] { background:var(--good-bg); }
+    .result strong { font-size:18px; }
+    .result p { color:var(--muted); font-size:14px; }
+    .steps { list-style:none; padding:0; counter-reset:step; }
+    .steps li { counter-increment:step; display:grid; grid-template-columns:24px 1fr; gap:14px; }
+    .steps li::before { content:counter(step); font:13px/26px var(--mono); color:var(--accent); }
+    .table-wrap { overflow-x:auto; }
+    table { border-collapse:collapse; width:100%; font-size:14px; }
+    th,td { border-bottom:1px solid var(--line); padding:12px 14px 12px 0; text-align:left; vertical-align:top; }
+    th { color:var(--muted); font-size:12px; }
+    details { border-top:1px solid var(--line); padding-top:16px; }
+    summary { cursor:pointer; font-weight:600; }
+    details>div { display:grid; gap:14px; padding-top:16px; }
+    footer { display:flex; flex-wrap:wrap; gap:12px 28px; border-top:1px solid var(--line); padding-top:20px; color:var(--muted); font-size:12px; }
+    @media(max-width:850px) { .layout { grid-template-columns:1fr; gap:28px; } nav { position:static; display:flex; flex-wrap:wrap; gap:8px 20px; } .nav-title { width:100%; } .shell { padding:24px; } }
+    @media(max-width:520px) { .shell { padding:20px; } .two-up { grid-template-columns:1fr; gap:20px; } .masthead { flex-wrap:wrap; gap:10px; } .masthead span { display:none; } main { gap:40px; } .requirement { grid-template-columns:1fr; gap:6px; } .lab,.artifact-sample,pre { padding:18px; } .lede { font-size:18px; } }
+    @media(prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none !important; transition:none !important; scroll-behavior:auto !important; } }
+    @media print { :root { --bg:#fff; --paper:#fff; --ink:#122035; --muted:#56657a; --line:#dce3eb; --accent:#225de3; --soft:#edf3ff; --good:#246044; --good-bg:#edf7f1; } body { font-size:11pt; } .shell { padding:0; } .layout { display:block; } nav,.theme,.toggle,.skip { display:none; } main { gap:28px; } h2,h3 { break-after:avoid; } .requirement,.lab,.window { break-inside:avoid; } .two-up { grid-template-columns:1fr 1fr; } }
+  </style>
+</head>
+<body>
+<a class="skip" href="#overview">Skip to product brief</a>
+<div class="shell">
+  <header class="masthead">
+    <img width="32" height="32" alt="" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23225de3'/%3E%3Cpath d='m11 10-6 6 6 6m10-12 6 6-6 6' fill='none' stroke='white' stroke-width='2'/%3E%3C/svg%3E">
+    <strong>HTML Artifact Viewer</strong><span>PRODUCT / DESIGN / TEST ARTIFACT</span>
+    <button class="theme" id="theme" type="button" aria-label="Switch to dark theme">Dark theme</button>
+  </header>
+  <div class="layout">
+    <nav aria-label="Document sections">
+      <span class="nav-title">In this artifact</span>
+      <a href="#overview">Product brief</a><a href="#requirements">Requirements</a><a href="#design">UX & interaction</a><a href="#boundaries">Privacy & boundaries</a><a href="#try-it">Try it on this file</a><a href="#appendix">Sources & open questions</a>
+    </nav>
+    <main>
+      <section class="intro" id="overview" aria-labelledby="title">
+        <p class="eyebrow">Product & design · v0.1 · 19 October 2026</p>
+        <h1 id="title">The file is already here.<br>Let the browser render it.</h1>
+        <p class="metadata"><strong>Status:</strong> Live-use evaluation · <strong>Author:</strong> Greg Hilkert, with Codex · <strong>Engineering:</strong> Greg Hilkert</p>
+        <p class="lede">Turn standalone HTML stored in GitHub into a page you can read and use, through the Raw link you already have.</p>
+        <p>For people sharing generated PRDs, prototypes, reports, and small tools. Today, viewing one means downloading it or setting up another place to host it. The viewer lets the browser render the file it already receives, for repositories the reader explicitly chooses.</p>
+        <div class="intro-note">This document is also the test artifact: its styles, embedded image, section links, theme control, and repository simulator all travel in this one file. It works offline and inside the viewer’s sandbox.</div>
+        <div class="window" aria-label="Source and rendered document comparison">
+          <div class="window-top"><span class="file-label">product-design.html</span><div class="toggle" role="group" aria-label="Artifact view"><button id="show-source" type="button" aria-pressed="false">Source</button><button id="show-rendered" type="button" aria-pressed="true">Rendered</button></div></div>
+          <pre id="source-view" hidden><code>&lt;article&gt;
+  &lt;h1&gt;A document you can use&lt;/h1&gt;
+  &lt;p&gt;One file. Your browser. No upload.&lt;/p&gt;
+  &lt;ol&gt;
+    &lt;li&gt;Choose a repository&lt;/li&gt;
+    &lt;li&gt;Click Raw&lt;/li&gt;
+    &lt;li&gt;Read the artifact&lt;/li&gt;
+  &lt;/ol&gt;
+&lt;/article&gt;</code></pre>
+          <article class="artifact-sample" id="rendered-view"><span class="render-label">HTML + inline CSS + inline JavaScript</span><h3>A document you can use</h3><p>One file. Your browser. No upload.</p><ol><li>Choose a repository</li><li>Click Raw</li><li>Read the artifact</li></ol></article>
+        </div>
+        <p class="caption">Illustrative view switch, not an embedded browser. The rest of this document is the actual portable artifact.</p>
+        <div class="two-up"><div><h3>Success in this version</h3><p>A reader loads the extension, adds the right repository, clicks Raw, and uses a standalone artifact without a clone, server, or additional login.</p></div><div><h3>Scope</h3><p>GitHub’s raw host on desktop Chromium 120+. The name leaves room for other hosts; GitLab, Bitbucket, Firefox, Safari, and mobile support are not implemented.</p></div></div>
+      </section>
+
+      <section id="requirements" aria-labelledby="requirements-title">
+        <div><p class="eyebrow">Product contract</p><h2 id="requirements-title">Requirements you can verify</h2></div>
+        <p>These describe the v0.1 implementation. Each ID is a stable section link for design discussions and verification.</p>
+        <article class="requirement" id="req-1"><a href="#req-1">REQ-1</a><div><h3>Render only selected repositories</h3><p>Start with an empty list. Accept explicit <code>owner/repository</code> entries or plain GitHub repository URLs, normalize duplicates, and support up to 100 repositories.</p><p class="acceptance"><strong>Verify:</strong> an unlisted repository stays as source. Adding it and reloading enables rendering. Wildcards and file URLs are rejected without replacing the saved configuration.</p></div></article>
+        <article class="requirement" id="req-2"><a href="#req-2">REQ-2</a><div><h3>Keep GitHub’s existing Raw action</h3><p>Render top-level <code>.html</code> and <code>.htm</code> responses from <code>raw.githubusercontent.com</code>. Keep GitHub’s repository interface unchanged.</p><p class="acceptance"><strong>Verify:</strong> click Raw on an allowed HTML file; the page renders. Non-HTML files and similarly named repositories stay unchanged. Section anchors remain usable.</p></div></article>
+        <article class="requirement" id="req-3"><a href="#req-3">REQ-3</a><div><h3>Make the artifact interactive and self-contained</h3><p>Support inline styles and scripts, plus embedded images, fonts, and media. A portable file must carry its own essential assets.</p><p class="acceptance"><strong>Verify:</strong> switch the comparison above, change the theme, and use the simulator below. The embedded blue icon appears. Download this file and repeat offline.</p></div></article>
+        <article class="requirement" id="req-4"><a href="#req-4">REQ-4</a><div><h3>Keep extension data local</h3><p>Store only repository settings and the enabled flag in this browser profile. The extension changes response headers without reading, storing, or uploading HTML bodies.</p><p class="acceptance"><strong>Verify:</strong> saved settings contain no file URLs or temporary access tokens. The runtime has no network client, remote code, or telemetry.</p></div></article>
+        <article class="requirement" id="req-5"><a href="#req-5">REQ-5</a><div><h3>Pause without losing the list</h3><p>Save an enabled or paused state alongside the repository list. Settings and rendering rules survive browser restarts.</p><p class="acceptance"><strong>Verify:</strong> pause, save, and reload a raw file; it returns to source. Resume, save, and reload to render again. Restart the browser and confirm the saved behavior.</p></div></article>
+        <article class="requirement" id="req-6"><a href="#req-6">REQ-6</a><div><h3>Use the reader’s existing GitHub access</h3><p>Require no extension authentication. Render private files only when GitHub already lets the browser retrieve them.</p><p class="acceptance"><strong>Verify:</strong> open a private artifact through GitHub using your own session. Access errors stay errors; the extension grants no new access. Reopen expired raw links through GitHub.</p></div></article>
+      </section>
+
+      <section id="design" aria-labelledby="design-title">
+        <div><p class="eyebrow">UX & interaction</p><h2 id="design-title">One setup surface. One familiar action.</h2></div>
+        <ol class="steps"><li><div><strong>Load the unpacked extension.</strong> Enable Developer mode in the browser’s extension manager and select the <code>extension/</code> folder.</div></li><li><div><strong>Choose repositories in Options.</strong> One per line; plain GitHub repository URLs also work. Save before opening the artifact.</div></li><li><div><strong>Open the GitHub file and click Raw.</strong> For a matching repository, the browser renders the page automatically.</div></li></ol>
+        <div class="two-up"><div><h3>Why reuse Raw?</h3><p>It already belongs to GitHub’s file workflow. No injected button, renamed control, or dependency on GitHub’s page layout is needed.</p></div><div><h3>What readers need to know</h3><p>Rendering is tied to the file’s repository, not to where the extension’s code lives. A saved change applies on the next raw-file load.</p></div></div>
+        <div class="lab" id="repository-lab">
+          <div><p class="eyebrow">Interactive design example</p><h3>Will this file render?</h3></div>
+          <p class="caption">A local illustration of the matching rules. It does not read or change your installed extension’s settings and makes no requests.</p>
+          <div class="two-up"><label>Allowed repository<input id="allowed-repo" type="text" value="your-org/artifacts" spellcheck="false" autocomplete="off"></label><label>File to open<select id="file-choice"><option value="own">EpiphanyMachine/html-artifact-viewer · product-design.html</option><option value="example">your-org/artifacts · report.html</option><option value="text">your-org/artifacts · notes.md</option></select></label></div>
+          <label class="check"><input id="previews-enabled" type="checkbox" checked> Previews enabled</label>
+          <div class="result" id="match-result" role="status" aria-live="polite"><strong id="match-title">Stays as source</strong><p id="match-reason">Add EpiphanyMachine/html-artifact-viewer to the extension’s repository list, save, and reload the Raw tab.</p></div>
+          <div><button id="use-this-repo" type="button">Try allowing this repository</button></div>
+        </div>
+        <div class="table-wrap"><table><caption class="caption">Reader states and recovery</caption><thead><tr><th scope="col">State</th><th scope="col">What the reader sees</th><th scope="col">Next step</th></tr></thead><tbody><tr><td>Empty list or unlisted repo</td><td>Original raw response</td><td>Add the file’s repository and save.</td></tr><tr><td>Previews paused</td><td>Original raw response</td><td>Enable previews, save, and reload.</td></tr><tr><td>Invalid setting</td><td>Validation error in Options; prior rules retained</td><td>Use one plain repository name or repository URL per line.</td></tr><tr><td>Expired private link</td><td>GitHub’s access response</td><td>Reopen the file in GitHub, then click Raw.</td></tr><tr><td>Separate asset files</td><td>HTML may render without its styling or behavior</td><td>Embed essential assets in the HTML.</td></tr></tbody></table></div>
+      </section>
+
+      <section id="boundaries" aria-labelledby="boundaries-title">
+        <div><p class="eyebrow">Privacy & boundaries</p><h2 id="boundaries-title">The browser receives the file. The extension supplies the rule.</h2></div>
+        <div class="sample-flow" aria-label="Rendering sequence"><span>Browser requests raw HTML</span><b aria-hidden="true">→</b><span>Browser applies repository rule</span><b aria-hidden="true">→</b><span>Browser renders isolated page</span></div>
+        <p>The extension uses declarative response-header rules. There is no preview backend or HTML processing service. Normal GitHub requests and browser history still exist.</p>
+        <div class="two-up"><div><h3>Available in the preview</h3><ul><li>Inline JavaScript and CSS</li><li>Embedded data and blob assets</li><li>Section links and local interaction</li><li>User-directed downloads</li></ul></div><div><h3>Unavailable in the preview</h3><ul><li>External assets, scripts, and frames</li><li>Fetch/XHR and form submissions</li><li>Cookies and normal browser storage</li><li>Extension API access</li></ul></div></div>
+        <p class="acceptance">Use artifacts you trust. Scripts can still navigate their own tab. This is a portable-document viewer, not a malware-analysis tool or a development server for multi-file applications.</p>
+      </section>
+
+      <section id="try-it" aria-labelledby="try-title">
+        <div><p class="eyebrow">Live verification</p><h2 id="try-title">Test the viewer with its own brief</h2></div>
+        <ol><li>Load the repository’s <code>extension/</code> folder unpacked. If it is already loaded, click Reload in the extension manager after code changes.</li><li>In extension Options, add <code>EpiphanyMachine/html-artifact-viewer</code> and save.</li><li>Open this file on GitHub and click <strong>Raw</strong>. You should see this designed page rather than its source.</li><li>Switch Source / Rendered, change the theme, and use the repository simulator. These verify inline JavaScript and styles.</li><li>Follow <a href="#req-3">REQ-3</a> to verify a section anchor, then resize to a narrow window. The page should remain readable without horizontal scrolling.</li><li>Save the HTML file locally and open it offline. Its content and controls should still work.</li><li>Pause previews in extension Options, save, and reload the Raw tab. Source returns. Resume, save, and reload to restore this page.</li></ol>
+        <p class="caption">Share the normal GitHub file URL. Avoid sharing private Raw URLs containing temporary access tokens.</p>
+        <p><a href="https://github.com/EpiphanyMachine/html-artifact-viewer/blob/main/docs/product-design.html" rel="noreferrer">Open this file on GitHub →</a></p>
+      </section>
+
+      <section id="appendix" aria-labelledby="appendix-title">
+        <div><p class="eyebrow">Appendix</p><h2 id="appendix-title">Sources & open questions</h2></div>
+        <p class="caption">An implementation reference dated 19 October 2026. Future ideas below are not commitments. Repository code and privacy documentation own the implementation details.</p>
+        <details open><summary>What still needs real-world feedback?</summary><div><ul><li>Does the allowlist setup make it obvious why an unexpected file stays as source?</li><li>How does the extension behave in Arc, Edge, and Brave? Automated browser verification currently uses Chromium.</li><li>Which other Git hosts warrant support? None are supported by v0.1.</li><li>What needs to change before store publication? Live use comes first; a store release, marketing demo, and promotional screenshots are deferred.</li></ul></div></details>
+        <details open><summary>Implementation sources</summary><div><p>All links below are optional references; this artifact itself needs no network access.</p><ul><li><a href="https://github.com/EpiphanyMachine/html-artifact-viewer/blob/main/README.md" rel="noreferrer">README: setup, compatibility, and scope</a></li><li><a href="https://github.com/EpiphanyMachine/html-artifact-viewer/blob/main/PRIVACY.md" rel="noreferrer">Privacy contract</a></li><li><a href="https://github.com/EpiphanyMachine/html-artifact-viewer/blob/main/extension/config.js" rel="noreferrer">Repository validation, matching, and preview policy</a></li><li><a href="https://github.com/EpiphanyMachine/html-artifact-viewer/blob/main/test/browser.test.js" rel="noreferrer">Unpacked Chromium verification</a></li></ul></div></details>
+      </section>
+      <footer><p>HTML Artifact Viewer · Independently developed by Greg Hilkert.</p><p>Built with Codex using Effective HTML. One portable HTML file.</p></footer>
+    </main>
+  </div>
+</div>
+<script>
+  const themeButton = document.getElementById('theme');
+  function updateThemeButton() {
+    const dark = document.documentElement.dataset.theme
+      ? document.documentElement.dataset.theme === 'dark'
+      : matchMedia('(prefers-color-scheme: dark)').matches;
+    themeButton.textContent = dark ? 'Light theme' : 'Dark theme';
+    themeButton.setAttribute('aria-label', 'Switch to ' + (dark ? 'light' : 'dark') + ' theme');
+  }
+  themeButton.addEventListener('click', () => {
+    document.documentElement.dataset.theme = themeButton.textContent === 'Dark theme' ? 'dark' : 'light';
+    updateThemeButton();
+  });
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateThemeButton);
+  updateThemeButton();
+
+  const sourceButton = document.getElementById('show-source');
+  const renderedButton = document.getElementById('show-rendered');
+  function setSource(showSource) {
+    sourceButton.setAttribute('aria-pressed', String(showSource));
+    renderedButton.setAttribute('aria-pressed', String(!showSource));
+    document.getElementById('source-view').hidden = !showSource;
+    document.getElementById('rendered-view').hidden = showSource;
+  }
+  sourceButton.addEventListener('click', () => setSource(true));
+  renderedButton.addEventListener('click', () => setSource(false));
+
+  const allowedRepo = document.getElementById('allowed-repo');
+  const fileChoice = document.getElementById('file-choice');
+  const previewsEnabled = document.getElementById('previews-enabled');
+  function updateMatch() {
+    const input = allowedRepo.value.trim();
+    let repo = input;
+    if (input.startsWith('https://')) {
+      try {
+        const url = new URL(input);
+        repo = url.hostname === 'github.com' && !url.port && !url.username && !url.password && !url.search && !url.hash
+          ? url.pathname.replace(/^\//, '').replace(/\/$/, '') : '';
+      } catch { repo = ''; }
+    }
+    const parts = repo.split('/');
+    const valid = parts.length === 2 && /^[a-z\d](?:[a-z\d-]{0,37}[a-z\d])?$/i.test(parts[0])
+      && /^[a-z\d_.-]{1,100}$/i.test(parts[1]) && !['.', '..'].includes(parts[1]);
+    const target = fileChoice.value === 'own' ? 'EpiphanyMachine/html-artifact-viewer' : 'your-org/artifacts';
+    let title = 'Stays as source';
+    let reason = 'Add ' + target + ' to the extension’s repository list, save, and reload the Raw tab.';
+    let renders = false;
+    if (!previewsEnabled.checked) { title = 'Previews are paused'; reason = 'Enable previews in Options, save, and reload the Raw tab.'; }
+    else if (!input) { reason = 'An empty repository list renders nothing. Add the file’s repository in Options.'; }
+    else if (!valid) { title = 'Invalid repository setting'; reason = 'Use owner/repository or a plain GitHub repository URL. This simulator accepts one repository.'; }
+    else if (fileChoice.value === 'text') { reason = 'This is a Markdown file. Only top-level .html and .htm files qualify.'; }
+    else if (repo.toLowerCase() === target.toLowerCase()) { title = 'Renders as a page'; reason = 'Previews are enabled, the repository matches, and the file is HTML. Click Raw to view it.'; renders = true; }
+    document.getElementById('match-title').textContent = title;
+    document.getElementById('match-reason').textContent = reason;
+    document.getElementById('match-result').dataset.renders = String(renders);
+  }
+  allowedRepo.addEventListener('input', updateMatch);
+  fileChoice.addEventListener('change', updateMatch);
+  previewsEnabled.addEventListener('change', updateMatch);
+  document.getElementById('use-this-repo').addEventListener('click', () => {
+    allowedRepo.value = 'EpiphanyMachine/html-artifact-viewer';
+    fileChoice.value = 'own';
+    previewsEnabled.checked = true;
+    updateMatch();
+  });
+  updateMatch();
+</script>
+</body>
+</html>
