@@ -23,7 +23,8 @@ test('real Chromium extension: repository configuration, rendering, privacy, per
  execFileSync('openssl',['req','-x509','-newkey','rsa:2048','-nodes','-keyout',key,'-out',cert,'-days','1','-subj','/CN=raw.githubusercontent.com'],{stdio:'ignore'});
  const fixtureServer=https.createServer({key:await readFile(key),cert:await readFile(cert)},async(req,res)=>{
    requests.push(req.url.split('?')[0]);
-   let content=fixture;
+   const content=req.url.split('?')[0].endsWith('/docs/product-design.html')
+     ? await readFile(join(root,'docs/product-design.html'),'utf8') : fixture;
    res.writeHead(200,{'content-type':'text/plain; charset=utf-8','content-security-policy':"default-src 'none'; sandbox",'x-content-type-options':'nosniff'});res.end(content);
  });
  const port=await listen(fixtureServer);
@@ -69,6 +70,33 @@ test('real Chromium extension: repository configuration, rendering, privacy, per
    await context.close();context=null;
    context=await launch();const persisted=await context.newPage();await persisted.goto(url);await persisted.getByRole('heading',{name:'Interactive artifact'}).waitFor();
    await t.test('dynamic rules survive a browser restart',()=>assert.equal(context.pages().length>0,true));
+   await t.test('portable product/design artifact renders and works inside the preview sandbox',async()=>{
+     const page=await context.newPage();const errors=[];page.on('pageerror',error=>errors.push(error.message));
+     await page.goto('https://raw.githubusercontent.com/EpiphanyMachine/html-artifact-viewer/gh/initial-viewer/docs/product-design.html');
+     await page.getByRole('heading',{name:'Requirements you can verify'}).waitFor();
+     assert.equal(await page.locator('.masthead img').evaluate(img=>img.complete&&img.naturalWidth>0),true);
+     await page.getByRole('button',{name:'Source',exact:true}).click();assert.equal(await page.locator('#source-view').isVisible(),true);
+     await page.getByRole('button',{name:'Rendered',exact:true}).click();assert.equal(await page.locator('#rendered-view').isVisible(),true);
+     await page.getByRole('button',{name:'Try allowing this repository'}).click();await page.getByText('Renders as a page',{exact:true}).waitFor();
+     await page.getByLabel('Previews enabled',{exact:true}).uncheck();await page.getByText('Previews are paused',{exact:true}).waitFor();
+     await page.emulateMedia({colorScheme:'dark'});await page.getByRole('button',{name:'Switch to light theme'}).click();
+     assert.equal(await page.locator('html').getAttribute('data-theme'),'light');
+     await page.getByRole('button',{name:'Switch to dark theme'}).click();assert.equal(await page.locator('html').getAttribute('data-theme'),'dark');
+     await page.locator('#try-it').getByRole('link',{name:'REQ-3',exact:true}).click();assert.equal(new URL(page.url()).hash,'#req-3');
+     for(const width of [1280,390]) {
+       await page.setViewportSize({width,height:900});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+     }
+     assert.deepEqual(errors,[]);
+     const offline=await context.newPage();const networkRequests=[];
+     await offline.route('**/*',route=>{
+       if(route.request().url().startsWith('file:')) return route.continue();
+       networkRequests.push(route.request().url());return route.abort();
+     });
+     await offline.goto(new URL('../docs/product-design.html',import.meta.url).href);
+     await offline.getByRole('button',{name:'Try allowing this repository'}).click();await offline.getByText('Renders as a page',{exact:true}).waitFor();
+     assert.equal(await offline.locator('.masthead img').evaluate(img=>img.complete&&img.naturalWidth>0),true);
+     assert.deepEqual(networkRequests,[]);
+   });
  } finally {
    if(context) await context.close();
    for(const socket of tunnels) socket.destroy();

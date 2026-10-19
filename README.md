@@ -18,6 +18,12 @@ No upload. No preview service. No extra login. Just your browser rendering the f
 
 Works with private repositories when GitHub already grants access to the raw file. Share the ordinary GitHub file link with teammates; each person clicks Raw using their own session. Do not share temporary token-bearing raw links.
 
+## Try a self-contained artifact
+
+The [product & design brief](docs/product-design.html) is also a working test artifact: requirements, UX decisions, section links, a theme switch, and an interactive repository-matching example in one offline HTML file.
+
+Add `EpiphanyMachine/html-artifact-viewer` in the extension's settings, save, then open that file in GitHub and click **Raw**. The repository must be allowed even when it contains the extension itself. You can also download the HTML file and open it locally without the extension.
+
 ## Built for artifacts, not another hosting platform
 
 - **Repository-scoped.** Select exactly where automatic rendering applies. Add, remove, or pause repositories without editing code.
