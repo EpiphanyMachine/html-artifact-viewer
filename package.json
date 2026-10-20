@@ -1,6 +1,6 @@
 {
   "name": "html-artifact-viewer",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "description": "Render the HTML artifacts already in GitHub. Local. Repository-scoped.",
@@ -8,12 +8,13 @@
     "node": ">=22"
   },
   "scripts": {
-    "test": "node --test test/config.test.js",
+    "test": "node --test test/config.test.js test/package.test.js",
     "test:browser": "node --test test/browser.test.js",
     "check": "node scripts/check.mjs",
     "package": "python3 scripts/package.py"
   },
   "devDependencies": {
     "playwright": "1.64.1"
-  }
+  },
+  "license": "MIT"
 }

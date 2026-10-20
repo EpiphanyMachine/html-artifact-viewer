@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { normalizeConfig, makeRules } from '../extension/config.js';
-const config = repositories => ({ enabled: true, repositories });
+const config = repositories => ({ enabled: true, repositories, scriptRepositories: [] });
 
 test('accepts repository slugs and GitHub URLs, normalizes case and removes duplicates', () => {
   assert.deepEqual(normalizeConfig(config([' Org/Docs ', 'https://github.com/org/docs/', '', 'person/project.ui'])), config(['org/docs', 'person/project.ui']));
@@ -35,7 +35,24 @@ test('runtime permissions and policy stay local and omit content-reading capabil
   const headers=makeRules(config(['org/docs']))[0].action.responseHeaders;
   const policy=headers.find(h=>h.header==='Content-Security-Policy').value;
   assert.ok(policy.includes("connect-src 'none'"));
-  assert.ok(policy.includes("script-src 'unsafe-inline'"));
-  assert.ok(policy.includes('sandbox allow-scripts'));
+  assert.ok(policy.includes("script-src 'none'"));
+  assert.ok(policy.includes('sandbox;'));
+  assert.equal(policy.includes('allow-downloads'), false);
   assert.equal(headers.find(h=>h.header==='Referrer-Policy').value,'no-referrer');
+});
+
+test('old settings migrate to scripts-off and trust is confined to configured repositories', () => {
+  assert.deepEqual(normalizeConfig({ enabled: true, repositories: ['org/docs'] }), config(['org/docs']));
+  const trusted = normalizeConfig({ ...config(['org/docs']), scriptRepositories: ['Org/Docs', 'org/docs'] });
+  assert.deepEqual(trusted.scriptRepositories, ['org/docs']);
+  for (const scriptRepositories of ['org/docs', [null], ['other/repo'], ['org/*']]) {
+    assert.throws(() => normalizeConfig({ ...config(['org/docs']), scriptRepositories }));
+  }
+});
+test('script opt-in is per repository and never enables downloads', () => {
+  const rules = makeRules({ ...config(['org/docs', 'org/passive']), scriptRepositories: ['org/docs'] });
+  const policies = rules.map(rule => rule.action.responseHeaders.find(header => header.header === 'Content-Security-Policy').value);
+  assert.ok(policies[0].includes("sandbox allow-scripts; script-src 'unsafe-inline'"));
+  assert.ok(policies[1].includes("sandbox; script-src 'none'"));
+  assert.ok(policies.every(policy => !policy.includes('allow-downloads')));
 });
