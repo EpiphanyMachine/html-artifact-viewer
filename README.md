@@ -78,6 +78,8 @@ Tests cover repository boundaries, configuration validation, actual browser head
 
 `npm run package` writes a ZIP to `dist/` containing an explicit list of extension files plus LICENSE and PRIVACY.md. Unlisted files are excluded and symlink inputs are rejected. Tests and development dependencies are not included.
 
+GitHub Actions runs the **CI / Test and package** job on pull requests targeting `main` and pushes to `main`. It uses Node 22 and Chromium on Ubuntu to run the unit/package tests, source checks, browser security tests, and ZIP build. The workflow has read-only repository permissions and does not publish releases or submit the extension to a store. CodeQL runs separately.
+
 ## Browser API references
 
 - [Declarative Net Request](https://developer.chrome.com/docs/extensions/reference/api/declarativeNetRequest): response changes without exposing request contents to extension code.
