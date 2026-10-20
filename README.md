@@ -14,7 +14,7 @@ No upload. No preview service. No extra login. Just your browser rendering the f
 
 1. Load the extension using the instructions below.
 2. Add repositories in its settings, such as `your-org/artifacts`. An empty list renders nothing; there is no all-repositories mode.
-3. Open an HTML file on GitHub and click **Raw**. It renders automatically, including inline JavaScript, embedded images, and section anchors.
+3. Open an HTML file on GitHub and click **Raw**. It renders automatically, with embedded images, styles, and section anchors. Scripts are off by default; optionally enable them for trusted repositories in settings.
 
 Works with private repositories when GitHub already grants access to the raw file. Share the ordinary GitHub file link with teammates; each person clicks Raw using their own session. Do not share temporary token-bearing raw links.
 
@@ -22,13 +22,13 @@ Works with private repositories when GitHub already grants access to the raw fil
 
 The [product & design brief](docs/product-design.html) is also a working test artifact: requirements, UX decisions, section links, a theme switch, and an interactive repository-matching example in one offline HTML file.
 
-Add `EpiphanyMachine/html-artifact-viewer` in the extension's settings, save, then open that file in GitHub and click **Raw**. The repository must be allowed even when it contains the extension itself. You can also download the HTML file and open it locally without the extension.
+Add `EpiphanyMachine/html-artifact-viewer` in the extension's settings, save, then open that file in GitHub and click **Raw**. The repository must be allowed even when it contains the extension itself. To use its interactive controls, explicitly enable scripts for this repository after reading the trust warning. You can also download the HTML file and open it locally without the extension.
 
 ## Built for artifacts, not another hosting platform
 
 - **Repository-scoped.** Select exactly where automatic rendering applies. Add, remove, or pause repositories without editing code.
 - **Local by design.** The extension changes response headers; it never reads or uploads HTML bodies. Repository settings are stored only in this browser.
-- **Actually interactive.** Inline scripts, filtering, diagrams, and embedded media work. Embedded assets mean no clone or local server is needed.
+- **Optionally interactive.** Enable scripts for repositories you trust to use interactive filtering and diagrams; embedded media works without script opt-in. Embedded assets mean no clone or local server is needed.
 - **Small enough to inspect.** No runtime dependencies, injected page scripts, API tokens, or hidden preview service. Read [the privacy design](PRIVACY.md).
 - **Open to build on.** Independently implemented from browser documentation, with original code and artwork, under the [MIT license](LICENSE).
 
@@ -52,9 +52,11 @@ Keep the installation folder in place. After updating its files, click **Reload*
 
 ## What it changes—and what it doesn't
 
-The extension uses the browser's documented `declarativeNetRequest` API to set the content type and an isolation policy for configured top-level `.html` and `.htm` responses. It never intercepts response bodies. Dynamic rules persist across restarts; configuration is local and starts empty.
+The extension uses the browser's documented `declarativeNetRequest` API to set the content type and an isolation policy for configured top-level `.html` and `.htm` responses. It never intercepts response bodies. Dynamic rules persist across restarts; configuration is local and starts empty. Upgrading from v0.1 keeps your repository list but turns scripts off. Reload any already-open artifacts to apply the new policy.
 
-External scripts, styles, fonts, images, API requests, frames, cookies, normal storage, and form submissions are unavailable in the artifact sandbox. Inline scripts and embedded assets work. Only open artifacts you trust: a script can still navigate its own tab. The [privacy policy](PRIVACY.md) explains the boundary.
+External scripts, styles, fonts, images, API requests, frames, cookies, normal storage, form submissions, and artifact-initiated downloads are unavailable in the artifact sandbox. Inline styles and embedded assets work by default. Inline JavaScript requires a separate opt-in for each configured repository.
+
+**Only enable scripts for content you trust.** Trusted scripts can read the current document and its private raw URL token, then send both to another site by navigating the tab. This trust applies to every matching file, branch, and revision in that repository. Scripts-off prevents this script-based attack; it is not a promise of zero network requests (for example, following a link still navigates). The [privacy policy](PRIVACY.md) explains the boundary.
 
 GitHub access errors remain errors. Expired private raw links need to be reopened through GitHub. This does not host a website or replace a development server for multi-file apps.
 
@@ -72,7 +74,7 @@ npm run package
 
 Tests cover repository boundaries, configuration validation, actual browser header changes, interactive HTML, private-query handling, persisted settings, and disabled previews. The browser suite uses a local HTTPS fixture and an isolated profile; it never signs into GitHub or uses private repository contents.
 
-`npm run package` writes an extension-only ZIP to `dist/`, without tests or development dependencies.
+`npm run package` writes a ZIP to `dist/` containing an explicit list of extension files plus LICENSE and PRIVACY.md. Unlisted files are excluded and symlink inputs are rejected. Tests and development dependencies are not included.
 
 ## Browser API references
 
