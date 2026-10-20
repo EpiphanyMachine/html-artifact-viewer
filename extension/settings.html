@@ -7,7 +7,8 @@
   <section class="intro"><p class="eyebrow">GITHUB HAS THE FILE. NOW SEE THE ARTIFACT.</p><h1>From source<br>to <span>something you can see.</span></h1><p class="lede">Your reports, prototypes, and PRDs already live in GitHub. Choose their repositories. Click <strong>Raw</strong>. Read the page.</p></section>
   <div class="workspace">
     <form id="settings-form">
-      <div class="form-top"><h2>Your repositories</h2><label class="switch"><input id="enabled" type="checkbox" checked> Previews enabled</label></div>
+      <div class="form-top"><h2>Your repositories</h2><label class="switch"><input id="enabled" type="checkbox" checked aria-describedby="preview-help"> Enable HTML previews</label></div>
+      <p class="note" id="preview-help">Turn HTML rendering on or off for all configured repositories. When off, Raw files show source instead. Your repositories and script preferences are kept. Save and reload open artifacts to apply changes.</p>
       <label for="repositories">Where should HTML come to life?</label>
       <p class="hint" id="repository-help">One owner/repository per line. You can paste GitHub repository URLs too.</p>
       <textarea id="repositories" rows="6" spellcheck="false" autocomplete="off" placeholder="your-org/artifacts" aria-describedby="repository-help"></textarea>

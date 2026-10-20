@@ -101,9 +101,9 @@ test('real Chromium extension: repository configuration, rendering, privacy, per
    const n=requests.length;
    const fetchBlocked=await artifact.evaluate(async()=>{try{await fetch('https://raw.githubusercontent.com/acme/artifacts/main/leak.html');return false;}catch{return true;}});assert.equal(fetchBlocked,true);assert.equal(requests.length,n);
    await settings.reload();await settings.getByText('Your settings are loaded.').waitFor();
-   await settings.getByLabel('Previews enabled').uncheck();await settings.getByRole('button',{name:'Save repositories'}).click();await settings.getByText('Saved. Previews are paused.').waitFor();
+   await settings.getByLabel('Enable HTML previews').uncheck();await settings.getByRole('button',{name:'Save repositories'}).click();await settings.getByText('Saved. Previews are paused.').waitFor();
    await artifact.reload();assert.equal(await artifact.locator('h1').count(),0);
-   await settings.getByLabel('Previews enabled').check();await settings.getByRole('button',{name:'Save repositories'}).click();await settings.getByText('Saved. 1 repository enabled.').waitFor();
+   await settings.getByLabel('Enable HTML previews').check();await settings.getByRole('button',{name:'Save repositories'}).click();await settings.getByText('Saved. 1 repository enabled.').waitFor();
    await settings.getByLabel('Where should HTML come to life?').fill('acme/artifacts\nEpiphanyMachine/html-artifact-viewer');await settings.getByRole('button',{name:'Save repositories'}).click();await settings.getByText('Saved. 2 repositories enabled.').waitFor();
    assert.equal(await settings.getByLabel('Allow scripts in epiphanymachine/html-artifact-viewer', {exact:true}).isChecked(),false);
    await settings.getByLabel('Allow scripts in epiphanymachine/html-artifact-viewer', {exact:true}).check();
@@ -121,7 +121,7 @@ test('real Chromium extension: repository configuration, rendering, privacy, per
      await page.getByRole('button',{name:'Source',exact:true}).click();assert.equal(await page.locator('#source-view').isVisible(),true);
      await page.getByRole('button',{name:'Rendered',exact:true}).click();assert.equal(await page.locator('#rendered-view').isVisible(),true);
      await page.getByRole('button',{name:'Try allowing this repository'}).click();await page.getByText('Renders as a page',{exact:true}).waitFor();
-     await page.getByLabel('Previews enabled',{exact:true}).uncheck();await page.getByText('Previews are paused',{exact:true}).waitFor();
+     await page.getByLabel('Enable HTML previews',{exact:true}).uncheck();await page.getByText('Previews are paused',{exact:true}).waitFor();
      await page.emulateMedia({colorScheme:'dark'});await page.getByRole('button',{name:'Switch to light theme'}).click();
      assert.equal(await page.locator('html').getAttribute('data-theme'),'light');
      await page.getByRole('button',{name:'Switch to dark theme'}).click();assert.equal(await page.locator('html').getAttribute('data-theme'),'dark');
