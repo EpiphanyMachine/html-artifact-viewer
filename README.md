@@ -22,7 +22,7 @@ Works with private repositories when GitHub already grants access to the raw fil
 
 The [product & design brief](docs/product-design.html) is also a working test artifact: requirements, UX decisions, section links, a theme switch, and an interactive repository-matching example in one offline HTML file.
 
-Add `EpiphanyMachine/html-artifact-viewer` in the extension's settings, save, then open that file in GitHub and click **Raw**. The repository must be allowed even when it contains the extension itself. To use its interactive controls, explicitly enable scripts for this repository after reading the trust warning. You can also download the HTML file and open it locally without the extension.
+Add `EpiphanyMachine/html-artifact-viewer` in the extension's settings, save, then open that file in GitHub and click **Raw**. The repository must be allowed even when it contains the extension itself. To use its interactive controls, explicitly enable scripts for this repository after reading the trust warning. You can also save the HTML file using the browser’s Save Page As command and open it locally. Locally opened copies are outside the extension’s sandbox and script settings.
 
 ## Built for artifacts, not another hosting platform
 
@@ -55,6 +55,8 @@ Keep the installation folder in place. After updating its files, click **Reload*
 The extension uses the browser's documented `declarativeNetRequest` API to set the content type and an isolation policy for configured top-level `.html` and `.htm` responses. It never intercepts response bodies. Dynamic rules persist across restarts; configuration is local and starts empty. Upgrading from v0.1 keeps your repository list but turns scripts off. Reload any already-open artifacts to apply the new policy.
 
 External scripts, styles, fonts, images, API requests, frames, cookies, normal storage, form submissions, and artifact-initiated downloads are unavailable in the artifact sandbox. Inline styles and embedded assets work by default. Inline JavaScript requires a separate opt-in for each configured repository.
+
+**Artifact exports are disabled.** Downloads remain blocked even when you click an export button or download link, and enabling scripts does not enable downloads. There is no download setting. The browser’s own Save Page As command is separate.
 
 **Only enable scripts for content you trust.** Trusted scripts can read the current document and its private raw URL token, then send both to another site by navigating the tab. This trust applies to every matching file, branch, and revision in that repository. Scripts-off prevents this script-based attack; it is not a promise of zero network requests (for example, following a link still navigates). The [privacy policy](PRIVACY.md) explains the boundary.
 

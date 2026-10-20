@@ -6,7 +6,7 @@ HTML Artifact Viewer has no accounts, backend, analytics, telemetry, or runtime 
 
 1. Your browser makes its normal request to GitHub's raw host.
 2. For configured repositories, the browser applies the extension's declarative response-header rules.
-3. The browser renders the response it received. No preview server or third-party service receives the document.
+3. The browser renders the response it received without a preview server. The extension does not send the document to a third party; explicitly trusted artifact scripts can transmit data as described below.
 
 GitHub authentication and private raw links remain GitHub's responsibility. This extension does not ask for OAuth, cookies, a personal access token, or repository credentials. It does not grant access to any file. Normal browser history and GitHub request handling are unchanged.
 
@@ -24,7 +24,9 @@ No content scripts, GitHub API access, external message handlers, advertising co
 
 ## What an artifact can do
 
-Artifacts render in an opaque-origin sandbox with inline styles and embedded images, fonts, and media. JavaScript is blocked by default. You can explicitly allow inline scripts for individual configured repositories. Artifact-initiated downloads are blocked, including script-triggered and download-link exports. Cookies, normal browser storage, external resources, fetch/XHR, frames, and form submission are blocked by the preview policy. The artifact has no extension API privileges.
+Artifacts render in an opaque-origin sandbox with inline styles and embedded images, fonts, and media. JavaScript is blocked by default. You can explicitly allow inline scripts for individual configured repositories. Cookies, normal browser storage, external resources, fetch/XHR, frames, and form submission are blocked by the preview policy. The artifact has no extension API privileges.
+
+**Downloads stay blocked in every repository, whether scripts are enabled or not.** This includes automatic downloads, download links, and exports triggered by clicking a button inside an artifact (for example, “Download CSV”). A user click does not bypass the restriction. There is no download setting in this version. The browser’s own Save Page As command is separate from artifact exports; locally opened copies are outside this extension’s sandbox and script settings.
 
 Enabling scripts is a trust decision for every matching file, branch, and revision in that repository. A trusted script can read the currently opened document and its private raw URL token, then transmit them to another site by navigating its own tab. The no-referrer policy does not prevent a script from explicitly putting data in a destination URL. Only enable scripts for content you trust.
 
